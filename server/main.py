@@ -3,6 +3,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from pydantic import BaseModel
 import base64
+from typing import Any, cast
 
 load_dotenv()
 
@@ -26,6 +27,7 @@ def gpt_response(request_body: Request):
     return response.output_text
 
 
+# /POST form-data
 @app.post("/review-image")
 async def review_image(image: UploadFile = File(...)):
     content = await image.read()
@@ -33,20 +35,19 @@ async def review_image(image: UploadFile = File(...)):
     prompt = "Please describe this image"
     mime_type = image.content_type or "image/jpeg"
 
-    response = client.responses.create(
-        model="gpt-5-nano",
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "input_text", "text": prompt},
-                    {
-                        "type": "input_image",
-                        "image_url": f"data:{mime_type};base64,{b64_image}",
-                    },
-                ],
-            }
-        ],
-    )
+    payload = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": prompt},
+                {
+                    "type": "input_image",
+                    "image_url": f"data:{mime_type};base64,{b64_image}",
+                },
+            ],
+        }
+    ]
+
+    response = client.responses.create(model="gpt-5-nano", input=cast(Any, payload))
 
     return {"message": response.output_text}
