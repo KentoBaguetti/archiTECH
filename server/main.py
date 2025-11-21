@@ -48,6 +48,8 @@ async def review_image(image: UploadFile = File(...)):
         }
     ]
 
-    response = client.responses.create(model="gpt-5-nano", input=cast(Any, payload))
-
-    return {"message": response.output_text}
+    try:
+        response = client.responses.create(model="gpt-5-nano", input=cast(Any, payload))
+        return {"message": response.output_text}
+    except Exception as e:
+        return {"error": e}
